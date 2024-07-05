@@ -94,7 +94,7 @@ async def callback_handler(client, query):
     elif query.data == "feedback":
         await query.answer("📝 Feedback 📝")
         await query.message.reply_text(
-            "Please leave your feedback by contacting @Yeh_yaa. Your input helps us improve the bot and provide a better experience for all users."
+            "Please leave your feedback by contacting @Mr_Luciferbot. Your input helps us improve the bot and provide a better experience for all users."
         )
 
   
@@ -102,7 +102,7 @@ async def callback_handler(client, query):
 async def account_login(bot: Client, m: Message):
     global cancel
     cancel = False
-    editable = await m.reply_text("**Send Text file containing Urls**")
+    editable = await m.reply_text("**Hello bruh! I Media Downloder Bot😊, my Owner is  ᴹᴿメ 𝐋𝐮𝐜𝐢𝐟𝐞𝐫❤️‍🩹 \n Now Send me the TXT File containing urls**")
     input: Message = await bot.listen(editable.chat.id)
     x = await input.download()
     await input.delete(True)
@@ -122,7 +122,7 @@ async def account_login(bot: Client, m: Message):
         await m.reply_text("Invalid file input.")
         os.remove(x)
         return
-    editable = await m.reply_text(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **0**")
+    editable = await m.reply_text(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **1**")
     input1: Message = await bot.listen(editable.chat.id)
     raw_text = input1.text
     try:
@@ -132,7 +132,7 @@ async def account_login(bot: Client, m: Message):
     editable = await editable.edit("**Enter Batch Name**")
     input01: Message = await bot.listen(editable.chat.id)
     mm = input01.text    
-    editable = await editable.edit("**Downloaded By**")
+    editable = await editable.edit("**Send Me ur name 😚**")
     input0: Message = await bot.listen(editable.chat.id)
     raw_text0 = input0.text
     
@@ -528,8 +528,8 @@ async def account_login(bot: Client, m: Message):
             try:
                 Show = f"**Downloading:-**\n\n**Name :-** `{name}\nQuality - {raw_text2}`\n\n**Url :-** `{url}`"
                 prog = await m.reply_text(Show)
-                cc = f'{str(count).zfill(3)}**.** {name1} {res}\n**Batch :-** {raw_text0}'
-                cc1 = f'{str(count).zfill(3)}**.** {name1} {res}.pdf\n**Batch :-** {raw_text0}'
+                cc = f'{str(count).zfill(3)}**.** {name1} {res} [ ᴹᴿメ 𝐋𝐮𝐜𝐢𝐟𝐞𝐫❤️‍🩹]\n**Batch :-** {raw_text0}'
+                cc1 = f'{str(count).zfill(3)}**.** {name1} {res} [ ᴹᴿメ 𝐋𝐮𝐜𝐢𝐟𝐞𝐫❤️‍🩹].pdf\n**Batch :-** {raw_text0}'
                 #                         await prog.delete (True)
                 #                 if cmd == "pdf" or "drive" in url:
                 #                     try:
