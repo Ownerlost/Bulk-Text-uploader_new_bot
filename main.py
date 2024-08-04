@@ -21,7 +21,7 @@ from subprocess import getstatusoutput
 import logging
 import os
 import sys
-from config import Config
+from config.py import Config
 from KHABAR.get_video_info import get_video_attributes, get_video_thumb
 import re
 from pyrogram.types import (InlineQueryResultArticle, InputTextMessageContent,
