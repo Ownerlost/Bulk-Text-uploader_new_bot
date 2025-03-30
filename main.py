@@ -93,7 +93,7 @@ async def start_command(client, message):
                 ],
             ]
         ),
-        parse_mode="markdown"
+        parse_mode="none"
     )
 
 # Callback Handler
