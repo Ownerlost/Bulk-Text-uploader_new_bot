@@ -131,133 +131,150 @@ async def callback_handler(client, query):
 
 # Main Download Command
 @bot.on_message(filters.command(["down"]))
-async def download_handler(bot: Client, m: Message):
+async def account_login(bot: Client, m: Message):
     global cancel
     cancel = False
+    editable = await m.reply_text("**Hello bruh! I Media Downloader Bot😊, my Owner is ᴹᴿメ 𝐋𝐮𝐜𝐢𝐟𝐞𝐫❤️‍🩹 \n Now Send me the TXT File containing urls**")
+    input: Message = await bot.listen(editable.chat.id)
+    x = await input.download()
+    await input.delete(True)
+
+    path = f"./downloads/"
+
+    try:    
+        with open(x, "r") as f:
+            content = f.read()
+        content = content.split("\n")
+        links = []
+        for i in content:
+            links.append(i.split(":", 1))
+        os.remove(x)
+    except:
+        await m.reply_text("Invalid file input.")
+        os.remove(x)
+        return
+
+    editable = await m.reply_text(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **1**")
+    input1: Message = await bot.listen(editable.chat.id)
+    raw_text = input1.text
+    try:
+        arg = int(raw_text)
+    except:
+        arg = 0
+
+    editable = await editable.edit("**Enter Batch Name**")
+    input01: Message = await bot.listen(editable.chat.id)
+    mm = input01.text    
+    editable = await editable.edit("**Send Me ur name 😚**")
+    input0: Message = await bot.listen(editable.chat.id)
+    raw_text0 = input0.text
     
-    # Get TXT file with URLs
-    editable = await m.reply_text("**Hello! Please send me the TXT file containing URLs**")
-    input_msg = await bot.listen(editable.chat.id)
-    txt_file = await input_msg.download()
-    await input_msg.delete(True)
+    await editable.edit("**Enter resolution**")
+    input2: Message = await bot.listen(editable.chat.id)
+    vid_format = input2.text
 
-    # Process the TXT file
-    try:
-        with open(txt_file, "r") as f:
-            content = f.read().split("\n")
-        links = [line.split(":", 1) for line in content if line.strip()]
-        os.remove(txt_file)
-    except Exception as e:
-        await m.reply_text(f"❌ Invalid file input: {str(e)}")
-        if os.path.exists(txt_file):
-            os.remove(txt_file)
-        return
+    editable = await editable.edit("Now send the **Thumb url**\nEg : ```https://telegra.ph/file/cef3ef6ee69126c23bfe3.jpg```\n\nor Send **no**")
+    input6 = message = await bot.listen(editable.chat.id)
+    raw_text6 = input6.text
+    thumb = input6.text
+    if thumb.startswith("http://") or thumb.startswith("https://"):
+        getstatusoutput(f"wget '{thumb}' -O 'thumb.jpg'")
+        thumb = "thumb.jpg"
+    else:
+        thumb == "no"
 
-    # Get user inputs
-    inputs = await get_user_inputs(bot, m, len(links))
-    if not inputs:
-        return
-
-    count = inputs['start_num']
-    mm = inputs['batch_name']
-    raw_text0 = inputs['user_name']
-    vid_format = inputs['resolution']
-    thumb = inputs['thumbnail']
-
-    # Process each link
-    for i in range(inputs['start_index'], len(links)):
-        if cancel:
-            await m.reply_text("🚫 Download canceled!")
-            break
-
+    if raw_text =='0':
+        count =1
+    else:       
+        count = int(raw_text)
+    for i in range(arg, len(links)):
         try:
             url = links[i][1]
-            name = sanitize_filename(links[i][0])
-            
-            # Download the file
-            file_path = await download_media(url, name, vid_format, m)
-            if not file_path:
-                continue
-
-            # Prepare caption and thumbnail
-            caption = prepare_caption(count, name, mm, raw_text0, vid_format)
-            thumbnail = await prepare_thumbnail(thumb, name, file_path)
-
-            # Send the file
-            if await safe_send_media(m.chat.id, file_path, caption, thumbnail):
-                count += 1
-            
-            # Cleanup
-            cleanup_files(file_path, thumbnail, thumb)
-
-        except Exception as e:
-            await m.reply_text(f"❌ Error processing {name}: {str(e)}")
+            name = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@","").replace("*","").replace(".","").strip()
+        except IndexError:
             continue
 
-    await m.reply_text("✅ All downloads completed!")
+        command_to_exec = [
+            "yt-dlp",
+            "--no-warnings",
+            "--socket-timeout", "30",
+            "-R", "25",
+            url,
+            "--fragment-retries", "25",
+            "--external-downloader", "aria2c",
+            "--downloader-args", "aria2c: -x 16 -j 32"
+        ]
 
-# CPD Command
-@bot.on_message(filters.command(["cpd"]))
-async def cpd_handler(bot: Client, m: Message):
-    editable = await m.reply_text("Please send the TXT file")
-    input_msg = await bot.listen(editable.chat.id)
-    txt_file = await input_msg.download()
-    await input_msg.delete(True)
+        if "youtu" in url:
+            ytf = f"b[height<={vid_format}][ext=mp4]/bv[height<={vid_format}][ext=mp4]+ba[ext=m4a]/b[ext=mp4]"
+            command_to_exec.extend(["-f", ytf, "-o", name+".%(ext)s"])
+        elif ".m3u8" in url or ".mp4" in url:
+            ytf = f"b[height<={vid_format}]/bv[height<={vid_format}]+ba"
+            command_to_exec.extend(["-f", ytf, "-o", name+".%(ext)s"])
+        elif ".pdf" in url:
+            command_to_exec = ['yt-dlp', '-o', f'{name}.pdf', url]
+        else:
+            ytf = f"b[height<={vid_format}]/bv[height<={vid_format}]+ba/b/bv+ba"
+            command_to_exec.extend(["-f", ytf, "-o", name+".%(ext)s"])
 
-    # Process the TXT file
-    try:
-        with open(txt_file, "r") as f:
-            content = f.read().split("\n")
-        links = [line.split(":", 1) for line in content if line.strip()]
-        os.remove(txt_file)
-    except Exception as e:
-        await m.reply_text(f"❌ Invalid file input: {str(e)}")
-        if os.path.exists(txt_file):
-            os.remove(txt_file)
-        return
+        Show = f"**Downloading**: __{name}__\n"
+        prog = await m.reply_text(Show)
+        
+        # Execute download command
+        returncode, stderr = await exec(command_to_exec)
+        if returncode != 0:
+            await prog.edit(f"❌ Download failed: {stderr}")
+            continue
 
-    # Get user inputs
-    inputs = await get_user_inputs(bot, m, len(links), 
-    if not inputs:
-        return
-
-    count = inputs['start_num']
-    raw_text0 = inputs['batch_name']
-    raw_text2 = inputs['resolution']
-    thumb = inputs['thumbnail']
-
-    # Process each link
-    for i in range(inputs['start_index'], len(links)):
-        try:
-            url = links[i][1]
-            name1 = sanitize_filename(links[i][0])
+        # Handle the downloaded file
+        if ".pdf" in url:
+            file_path = f"{name}.pdf"
+            cc = f'{str(count).zfill(2)}. {name}\n\n**Batch »** {mm}\n**Downloaded By »** {raw_text0}'
             
-            # Handle PDF files
-            if ".pdf" in url or "pdf" in name1:
-                name = f"{str(count).zfill(3)}) {name1.replace('pdf', '')}.pdf"
-                if not await download_pdf(url, name, m, count, raw_text0):
-                    continue
-                count += 1
-                continue
-
-            # Handle video files
-            file_path, caption = await process_video_url(
-                url, name1, raw_text2, count, raw_text0, m
+            # Fixed: Added chat_id parameter
+            await bot.send_document(
+                chat_id=m.chat.id,
+                document=file_path,
+                caption=cc,
+                parse_mode="md"
             )
-            if not file_path:
-                continue
+            count += 1
+            await prog.delete()
+            os.remove(file_path)
+        else:
+            file_path = f"{name}.mp4"
+            cc = f'{str(count).zfill(2)}. {name} - {vid_format}p\n\n**Batch »** {mm}\n**Downloaded By »** {raw_text0}'
+            
+            # Generate thumbnail if needed
+            if thumb == "no":
+                try:
+                    subprocess.run(f'ffmpeg -i "{file_path}" -ss 00:00:01 -vframes 1 "{name}.jpg"', shell=True)
+                    thumbnail = f"{name}.jpg"
+                except:
+                    thumbnail = None
+            else:
+                thumbnail = thumb
 
-            # Send the file
-            thumbnail = await prepare_thumbnail(thumb, name1, file_path)
-            if await safe_send_media(m.chat.id, file_path, caption, thumbnail):
-                count += 1
+            # Send the video
+            duration, width, height = get_video_attributes(file_path)
+            await bot.send_video(
+                chat_id=m.chat.id,
+                video=file_path,
+                caption=cc,
+                duration=duration,
+                width=width,
+                height=height,
+                thumb=thumbnail,
+                supports_streaming=True,
+                parse_mode="md"
+            )
+            count += 1
+            await prog.delete()
             
             # Cleanup
-            cleanup_files(file_path, thumbnail, thumb)
-
-        except Exception as e:
-            await m.reply_text(f"❌ Error processing {name1}: {str(e)}")
-            continue
+            os.remove(file_path)
+            if thumb == "no" and os.path.exists(f"{name}.jpg"):
+                os.remove(f"{name}.jpg")
 
     await m.reply_text("✅ All downloads completed!")
 
